@@ -1,0 +1,78 @@
+// EFA Sports — client-side interactions
+
+const $ = (selector, scope = document) => scope.querySelector(selector);
+const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+
+// Mobile navigation
+const toggle = $('.menu-toggle');
+const nav = $('.nav');
+toggle?.addEventListener('click', () => {
+  const open = nav.classList.toggle('mobile-open');
+  toggle.setAttribute('aria-expanded', open);
+});
+
+// Close mobile nav after navigation
+$$('.nav a').forEach(a => a.addEventListener('click', () => nav.classList.remove('mobile-open')));
+
+// Schedule filters
+$$('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    $$('.game').forEach(game => {
+      game.hidden = filter !== 'all' && game.dataset.type !== filter;
+    });
+  });
+});
+
+// Statistics search
+function filterStats() {
+  const q = $('#search')?.value.toLowerCase().trim() || '';
+  $$('#statsGrid > div').forEach(card => {
+    card.hidden = q && !card.textContent.toLowerCase().includes(q);
+  });
+}
+$('#search')?.addEventListener('input', filterStats);
+
+// Team profile modal
+const modal = $('#teamModal');
+const modalTitle = $('#modalTitle');
+const modalConference = $('#modalConference');
+const modalRecord = $('#modalRecord');
+
+function openTeam(card) {
+  modalTitle.textContent = card.dataset.team;
+  modalConference.textContent = card.dataset.conference;
+  modalRecord.textContent = card.dataset.record;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+function closeTeam() {
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+}
+$$('.team-card[data-team]').forEach(card => card.addEventListener('click', () => openTeam(card)));
+$$('[data-close-modal]').forEach(el => el.addEventListener('click', closeTeam));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTeam();
+});
+
+// Smooth scrolling with a small offset for the sticky header
+$$('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    const target = $(link.getAttribute('href'));
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (link.dataset.closeModal !== undefined) closeTeam();
+  });
+});
+
+// Demo Discord button — replace # with your real invite URL.
+$('.discord')?.addEventListener('click', e => {
+  e.preventDefault();
+  alert('Add your EFA Discord invite URL to the .discord link in index.html.');
+});
